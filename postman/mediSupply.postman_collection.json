@@ -1,0 +1,196 @@
+{
+  "info": {
+    "name": "MediSupply Security Experiment",
+    "description": "Colección para ejercitar los microservicios de MediSupply a través del API Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login user1",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.collectionVariables.set('token_user1', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login user2",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user2\",\n  \"password\": \"pass2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.collectionVariables.set('token_user2', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{token_user1}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Authorizer health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/auth/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Order Status",
+      "item": [
+        {
+          "name": "Authorized",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_user1}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{customerId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{customerId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "No token",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{customerId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{customerId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Wrong subject",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_user2}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{customerId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{customerId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Security health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alert",
+      "item": [
+        {
+          "name": "Get metrics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/alerts/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["alerts", "metrics"]
+            }
+          }
+        },
+        {
+          "name": "Post alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"no_token\",\n  \"customer_id\": \"u1\",\n  \"subject\": null,\n  \"t0\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alerts/alert",
+              "host": ["{{baseUrl}}"],
+              "path": ["alerts", "alert"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "customerId", "value": "u1" }
+  ]
+}

@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  authorizer:
+    build: ./authorizer
+    environment:
+      - JWT_SECRET=devsecret
+    networks: [ ms ]
+  security_audit:
+    build: ./security_audit
+    environment:
+      - JWT_SECRET=devsecret
+      - ALERT_URL=http://alert:8002/alert
+    depends_on: [ alert ]
+    networks: [ ms ]
+  alert:
+    build: ./alert_sink
+    networks: [ ms ]
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on: [ authorizer, security_audit, alert ]
+    networks: [ ms ]
+networks:
+  ms: { }
